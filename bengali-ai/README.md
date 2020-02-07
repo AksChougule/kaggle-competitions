@@ -1,13 +1,13 @@
-My notes/learning from Bengali-ai kaggle competition
+## My notes/learning from Bengali-ai kaggle competition
 
-Technology used: Python 3.6, Pytorch 1.0.3, Jupyter Notebook
-Labelled data: 200,840 Images (80/20 split)
-Final accuracy: Grapheme model (95.5%), consonant model (98.2%), vowel model (98.3%)
+**Technology used**: Python 3.6, Pytorch 1.0.3, Jupyter Notebook
+**Labelled data**: 200,840 Images (80/20 split)
+**Final accuracy**: Grapheme model (95.5%), consonant model (98.2%), vowel model (98.3%)
 
-Description: This dataset contains images of individual hand-written Bengali characters. Bengali characters (graphemes) are written by combining three components: a grapheme_root, vowel_diacritic, and consonant_diacritic. Your challenge is to classify the components of the grapheme in each image. There are roughly 10,000 possible graphemes, of which roughly 1,000 are represented in the training set. The test set includes some graphemes that do not exist in train but has no new grapheme components.
+**Description**: This dataset contains images of individual hand-written Bengali characters. Bengali characters (graphemes) are written by combining three components: a grapheme_root, vowel_diacritic, and consonant_diacritic. Your challenge is to classify the components of the grapheme in each image. There are roughly 10,000 possible graphemes, of which roughly 1,000 are represented in the training set. The test set includes some graphemes that do not exist in train but has no new grapheme components.
 
 
-General notes on workflow
+**General notes on workflow**
 
 1. Understand the data directory.
 
