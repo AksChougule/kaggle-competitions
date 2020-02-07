@@ -1,4 +1,4 @@
-## My notes/learning from Bengali-ai kaggle competition
+## My notes/learning from Bengali-AI
 
 **Competition Name**: Bengali.AI Handwritten Grapheme Classification
 
@@ -32,7 +32,7 @@ So I converted the parquet to images and wrote on disk. Delete parquet objects t
 7. These images are grayscale images (with only one channel) but the pre-trained model expects 3-channel image. 
 So either I have to convert grayscale to RGB using convert.RGB from PIL.Image or modify the pre-trained architecture to accept one channel. I went with the former.
 
-8. Also the pre-trained models in resnet family expects 224*224 image by default but our original images have dimensions of 137*236. So I had to resize them to larger dimension.
+8. Also the pre-trained models in resnet family expects 224\*224 image by default but our original images have dimensions of 137*236. So I had to resize them to larger dimension.
 
 9. Created a custom class for our dataset inheriting the Dataset class from PyTorch. This class enables us to access/get an image and the label, transform it using the input arguments and also convert it to RGB (3-channel image).
 
