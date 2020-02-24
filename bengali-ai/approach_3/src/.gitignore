@@ -73,8 +73,8 @@ docs/_build/
 
 # PyBuilder
 target/
-../inputs/
-../models/
+inputs/
+models/
 
 # Jupyter Notebook
 .ipynb_checkpoints
