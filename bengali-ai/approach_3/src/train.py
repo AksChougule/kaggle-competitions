@@ -59,10 +59,9 @@ def evaluate(dataset, data_loader, model):
     model.eval()
     final_loss = 0
     counter = 0
+    # without no_grad we quickly run out of memory
     with torch.no_grad():
-        print("Inside evaluate()")
         for bi, d in tqdm(enumerate(data_loader), total=int(len(dataset)/data_loader.batch_size)):
-            #print("Inside for loop of evaluate (), loop {counter}")
             counter = counter + 1
             image = d["image"]
             grapheme_root = d["grapheme_root"]
@@ -74,10 +73,8 @@ def evaluate(dataset, data_loader, model):
             vowel_diacritic = vowel_diacritic.to(DEVICE, dtype=torch.long)
             consonant_diacritic = consonant_diacritic.to(DEVICE, dtype=torch.long)
             
-            #print("before model")
             outputs = model(image)
             targets = (grapheme_root, vowel_diacritic, consonant_diacritic)
-            #print("before loss")
             loss = loss_fn(outputs, targets)
             final_loss += loss
     return final_loss /counter
@@ -117,7 +114,7 @@ def main():
         )
     
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
-    # some sch need to steps up after batch and some needs steps up after epoch
+    # some schedulers need to step up after batch and some need steps up after epoch
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", patience=5, factor=0.3, verbose=True)
     
     #if torch.cuda.device_count() > 1:
