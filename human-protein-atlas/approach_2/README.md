@@ -1,9 +1,17 @@
-Approach 2 is based on only PyTorch code, no Fastai. 
+## Approach 2 is based on plain PyTorch code, no Fastai. 
 
-The intention is to learn to implement the low lower code which offer more flexibility.
+The intention is to get better at implementing the low level code which offer more flexibility.
 
-A few changes implemeneted so far compared to approach 1:
-- A 5 fold cross-validation
+### Changes implemeneted so far compared to approach 1:
 - Multilabel stratified sampling
-- More modular and scalable code
+- Creating custom model using pretrained architecture
 - Mutilmodal model head (1 for each class, so 28 in total)
+- More modular and scalable code
+
+### To try:
+- A 5 fold cross-validation
+- More augmentation
+- Progressive resizing during training
+- External data
+- Freeze/unfreeze of initial layers
+- TTA, mixup, fp16, 
