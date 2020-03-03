@@ -250,8 +250,9 @@ def main():
         train(train_dataset, train_loader, model, optimizer)
         print(f"Starting epoch {epoch} validation phase")
         val_score = evaluate(valid_dataset, valid_loader, model)
+        print(val_score)
         scheduler.step(val_score)
-        torch.save(model.state_dict(), f"{BASE_MODEL}_fold{VALIDATION_FOLDS[0]}.bin")
+        torch.save(model.state_dict(), f"../models/{BASE_MODEL}_fold{VALIDATION_FOLDS[0]}.bin")
         
 if __name__ == "__main__":
     main()

@@ -52,21 +52,21 @@ class HumanProteinAtlasTrain:
         if len(folds) == 1:
             self.aug = albumentations.Compose([
                 # Resize based on input
-                albumentations.Resize(img_height, img_width, always_apply=True),
+                #albumentations.Resize(img_height, img_width, always_apply=True),
                 # Normalize
-                albumentations.Normalize(mean, std, always_apply=True)
+                albumentations.Normalize(mean, std, p=1.0)
                 
             ])
         else:
             self.aug = albumentations.Compose([
                 # Resize based on input
-                albumentations.Resize(img_height, img_width, always_apply=True),
+                #albumentations.Resize(img_height, img_width, always_apply=True),
                 albumentations.ShiftScaleRotate(shift_limit=0.0625,
                                                 scale_limit=0.1,
                                                 rotate_limit=5,
                                                 p=0.9),# apply 90% of the times
                 # Normalize
-                albumentations.Normalize(mean, std, always_apply=True)                
+                albumentations.Normalize(mean, std, p=1.0)                
             ])
             
         

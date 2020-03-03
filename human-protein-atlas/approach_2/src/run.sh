@@ -2,11 +2,11 @@ export CUDA_VISIBLE_DEVICES=0
 export IMG_HEIGHT=512
 export IMG_WIDTH=512
 export EPOCHS=5
-export TRAIN_BATCH_SIZE=28
+export TRAIN_BATCH_SIZE=12
 export TEST_BATCH_SIZE=8
 export MODEL_MEAN="(0.485, 0.456, 0.406)"
 export MODEL_STD="(0.229, 0.224, 0.225)"
-export BASE_MODEL="resnet34"
+export BASE_MODEL="resnet50"
 export TRAINING_FOLDS_CSV="../input/train_folds.csv"
 
 export TRAINING_FOLDS="(0, 1, 2, 3)"

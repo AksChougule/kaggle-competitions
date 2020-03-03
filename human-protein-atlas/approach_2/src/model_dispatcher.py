@@ -2,5 +2,6 @@ import models
 
 # Create dictionary which can dispacth models
 MODEL_DISPATCHER = {
-    'resnet34': models.ResNet34
+    'resnet34': models.ResNet34,
+    'resnet50': models.ResNet50
 }
