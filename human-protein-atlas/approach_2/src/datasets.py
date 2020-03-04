@@ -65,6 +65,10 @@ class HumanProteinAtlasTrain:
                                                 scale_limit=0.1,
                                                 rotate_limit=5,
                                                 p=0.9),# apply 90% of the times
+                albumentations.HorizontalFlip(p=0.5),
+                albumentations.RandomBrightness(p=0.2, limit=0.2),
+                albumentations.RandomContrast(p=0.1, limit=0.2),
+                albumentations.RandomRotate90(p=0.2),
                 # Normalize
                 albumentations.Normalize(mean, std, p=1.0)                
             ])
