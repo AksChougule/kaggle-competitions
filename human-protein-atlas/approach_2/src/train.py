@@ -4,7 +4,9 @@ import torch
 import torch.nn as nn
 from model_dispatcher import MODEL_DISPATCHER
 from datasets import HumanProteinAtlasTrain
+from model_utils import *
 from tqdm import tqdm
+import pdb
 
 DEVICE = "cuda"
 TRAINING_FOLDS_CSV = os.environ.get("TRAINING_FOLDS_CSV")
@@ -204,8 +206,9 @@ def evaluate(dataset, data_loader, model):
             final_loss += loss
     return final_loss /counter
                  
-def main():
+def main():    
     model = MODEL_DISPATCHER[BASE_MODEL](pretrained=True)
+    #model = model_.model
     model.to(DEVICE)
     
     train_dataset = HumanProteinAtlasTrain(
@@ -238,13 +241,128 @@ def main():
         num_workers=4
         )
     
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
-    # some schedulers need to step up after batch and some need steps up after epoch
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", patience=5, factor=0.3, verbose=True)
+    
+#    # The lr_div value can turn on or off the differntial learning rate
+#    if lr_div:
+#        optimizer = torch.optim.Adam(get_group_params(param_groups, lrs / lr_div), lr=lr)
+#        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", patience=5, factor=0.3, verbose=True)
+#        #logger.info(f'Learning rate divider: {lr_div}')
+#    else:
+#        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+#        # Let's use a scheduler to adjust/change learning rate
+#        # some schedulers need to step up after batch and some need steps up after epoch
+#        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", patience=5, factor=0.3, verbose=True)
     
     #if torch.cuda.device_count() > 1:
     #    model = nn.DataParallel(model)
-        
+    
+
+    ## STAGE 1
+    #pdb.set_trace()
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            print(name)
+    
+    # freeze all layers except the last one
+    freeze(model)
+    freeze_till_last(model)
+# =============================================================================
+#     model.model.last_linear.weight.requires_grad=True
+#     model.model.last_linear.bias.requires_grad=True
+#     model.l0.weight.requires_grad=True
+#     model.l0.bias.requires_grad=True
+#     model.l1.weight.requires_grad=True
+#     model.l1.bias.requires_grad=True
+#     model.l2.weight.requires_grad=True
+#     model.l2.bias.requires_grad=True
+#     model.l3.weight.requires_grad=True
+#     model.l3.bias.requires_grad=True
+#     model.l4.weight.requires_grad=True
+#     model.l4.bias.requires_grad=True
+#     model.l5.weight.requires_grad=True
+#     model.l5.bias.requires_grad=True
+#     model.l6.weight.requires_grad=True
+#     model.l6.bias.requires_grad=True
+#     model.l7.weight.requires_grad=True
+#     model.l7.bias.requires_grad=True
+#     model.l8.weight.requires_grad=True
+#     model.l8.bias.requires_grad=True
+#     model.l9.weight.requires_grad=True
+#     model.l9.bias.requires_grad=True
+#     model.l10.weight.requires_grad=True
+#     model.l10.bias.requires_grad=True
+#     model.l11.weight.requires_grad=True
+#     model.l11.bias.requires_grad=True
+#     model.l12.weight.requires_grad=True
+#     model.l12.bias.requires_grad=True
+#     model.l13.weight.requires_grad=True
+#     model.l13.bias.requires_grad=True
+#     model.l14.weight.requires_grad=True
+#     model.l14.bias.requires_grad=True
+#     model.l15.weight.requires_grad=True
+#     model.l15.bias.requires_grad=True
+#     model.l16.weight.requires_grad=True
+#     model.l16.bias.requires_grad=True
+#     model.l17.weight.requires_grad=True
+#     model.l17.bias.requires_grad=True
+#     model.l18.weight.requires_grad=True
+#     model.l18.bias.requires_grad=True
+#     model.l19.weight.requires_grad=True
+#     model.l19.bias.requires_grad=True
+#     model.l20.weight.requires_grad=True
+#     model.l20.bias.requires_grad=True
+#     model.l21.weight.requires_grad=True
+#     model.l21.bias.requires_grad=True
+#     model.l22.weight.requires_grad=True
+#     model.l22.bias.requires_grad=True
+#     model.l23.weight.requires_grad=True
+#     model.l23.bias.requires_grad=True
+#     model.l24.weight.requires_grad=True
+#     model.l24.bias.requires_grad=True
+#     model.l25.weight.requires_grad=True
+#     model.l25.bias.requires_grad=True
+#     model.l26.weight.requires_grad=True
+#     model.l26.bias.requires_grad=True
+#     model.l27.weight.requires_grad=True
+#     model.l27.bias.requires_grad=True
+# =============================================================================
+       
+
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            print(name)
+
+    lr=3e-2
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", patience=5, factor=0.3, verbose=True)
+
+    for epoch in range(3):
+        print(f"Starting epoch {epoch} training phase")
+        train(train_dataset, train_loader, model, optimizer)
+        print(f"Starting epoch {epoch} validation phase")
+        val_score = evaluate(valid_dataset, valid_loader, model)
+        print(val_score)
+        scheduler.step(val_score)
+
+    ## STAGE 2
+
+    # unfreeze all layers
+    unfreeze(model)
+    lr = 1e-2
+     # For differential learning rate let's divide the network into 3 groups
+    param_groups = [
+        [model.model.conv1, model.model.bn1, model.model.layer1, model.model.layer2],
+        [model.model.layer3, model.model.layer4],
+        [model.model.last_linear,model.l0,model.l1,model.l2,model.l3,model.l4,model.l5,model.l6,model.l7,model.l8,model.l9,model.l10,model.l11,model.l12,model.l13,model.l14,model.l15,model.l16,model.l17,model.l18,model.l19,model.l20,model.l21,model.l22,model.l23,model.l24,model.l25,model.l26,model.l27]
+    ]
+    # and define 3 lrs for the 3 groups
+    lrs = np.array([lr / 100, lr / 10, lr])
+    #lr_div = 8
+
+    optimizer = torch.optim.Adam(get_group_params(param_groups, lrs), lr=lr)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", patience=5, factor=0.3, verbose=True)
+
+
     for epoch in range(EPOCHS):
         print(f"Starting epoch {epoch} training phase")
         train(train_dataset, train_loader, model, optimizer)
@@ -252,7 +370,7 @@ def main():
         val_score = evaluate(valid_dataset, valid_loader, model)
         print(val_score)
         scheduler.step(val_score)
-        torch.save(model.state_dict(), f"../models/{BASE_MODEL}_w_tfms_epoch{EPOCHS}_fold{VALIDATION_FOLDS[0]}.bin")
+        torch.save(model.state_dict(), f"../models/{BASE_MODEL}_w_tfms_dlr_v2_epoch{EPOCHS}_fold{VALIDATION_FOLDS[0]}.bin")
         
 if __name__ == "__main__":
     main()
