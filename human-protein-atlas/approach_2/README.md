@@ -7,9 +7,9 @@ The intention is to get better at implementing the low level code which offer mo
 - Creating custom model using pretrained architecture
 - Mutilmodal model head (1 for each class, so 28 in total)
 - More modular and scalable code
+- A 5 fold cross-validation (the average doesn't help much but a few individual models perform pretty good)
 
 ### To try:
-- A 5 fold cross-validation
 - More augmentation
 - Progressive resizing during training
 - External data
