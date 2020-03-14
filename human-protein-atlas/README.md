@@ -1,4 +1,4 @@
-
+The approch 2 is purely based on PyTorch and not fastai. The details of all the experiments below:
 
 |  Score (Pvt / Pub)	| Arch	| Epochs (stage1/stage2)	| lr 	| Stratified samlping	| Cross-validation	| Augmentation	| dlr	| Freeze/Unfreeze	| TTA	| External data	| Comment|
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
