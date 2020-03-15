@@ -218,8 +218,10 @@ def main():
     #if torch.cuda.device_count() > 1:
     #    model = nn.DataParallel(model)
     
-    stage_multiplier = 4
-    
+    stage_multiplier = 2
+    if FROZEN_BODY_TRAINING==0:
+        FBR_EPOCH = FBT_LR = 0
+
     # We are going to do stage-1 and stage-2 multiple times (stage_multiplier times)
     for i in range(1,stage_multiplier):
         print(f'Stage multiplier: {i}, EPOCHS: {EPOCHS}, LR: {LR}, FBT_EPOCHS: {FBT_EPOCHS}, FBT_LR: {FBT_LR}')
@@ -257,8 +259,9 @@ def main():
         ]
         # and define 3 lrs for the 3 groups
         lrs = np.array([3e-5, 1e-4 , lr/5])
-        optimizer = torch.optim.Adam(get_group_params(param_groups, lrs), lr=lr)
-        #optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+        # commenting the following line will disable the dlr
+        #optimizer = torch.optim.Adam(get_group_params(param_groups, lrs), lr=lr)
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", patience=5, factor=0.3, verbose=True)
     
     
