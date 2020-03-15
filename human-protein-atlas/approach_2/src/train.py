@@ -178,6 +178,8 @@ def evaluate(dataset, data_loader, model):
             final_loss += loss
     return final_loss /counter
                  
+
+
 def main():    
     model = MODEL_DISPATCHER[BASE_MODEL](pretrained=True)
     #model = model_.model
@@ -216,52 +218,62 @@ def main():
     #if torch.cuda.device_count() > 1:
     #    model = nn.DataParallel(model)
     
-    ## STAGE 1
-   
-    if FROZEN_BODY_TRAINING:
-        # freeze all layers except the last one
-        freeze(model)
-        freeze_till_last(model)
-        print(f'EPOCHS: {EPOCHS}, LR: {LR}, FBT_EPOCHS: {FBT_EPOCHS}, FBT_LR: {FBT_LR}')
-        lr=FBT_LR
-        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    stage_multiplier = 4
+    
+    # We are going to do stage-1 and stage-2 multiple times (stage_multiplier times)
+    for i in range(1,stage_multiplier):
+        print(f'Stage multiplier: {i}, EPOCHS: {EPOCHS}, LR: {LR}, FBT_EPOCHS: {FBT_EPOCHS}, FBT_LR: {FBT_LR}')
+        total_epochs = i*(FBT_EPOCHS + EPOCHS)
+          
+        ## STAGE 1
+       
+        if FROZEN_BODY_TRAINING:
+            # freeze all layers except the last one
+            freeze(model)
+            freeze_till_last(model)
+            #print(f'EPOCHS: {EPOCHS}, LR: {LR}, FBT_EPOCHS: {FBT_EPOCHS}, FBT_LR: {FBT_LR}')
+            lr=FBT_LR
+            optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", patience=5, factor=0.3, verbose=True)
+        
+            for epoch in range(FBT_EPOCHS):
+                print(f"Starting epoch {epoch} training phase")
+                train(train_dataset, train_loader, model, optimizer)
+                print(f"Starting epoch {epoch} validation phase")
+                val_score = evaluate(valid_dataset, valid_loader, model)
+                print(val_score)
+                scheduler.step(val_score)
+    
+        ## STAGE 2
+    
+        # unfreeze all layers
+        unfreeze(model)
+        lr = LR
+        # For differential learning rate let's divide the network into 3 groups
+        param_groups = [
+            [model.model.conv1, model.model.bn1, model.model.layer1],
+            [model.model.layer2, model.model.layer3, model.model.layer4],
+            [model.model.last_linear,model.l0,model.l1,model.l2,model.l3,model.l4,model.l5,model.l6,model.l7,model.l8,model.l9,model.l10,model.l11,model.l12,model.l13,model.l14,model.l15,model.l16,model.l17,model.l18,model.l19,model.l20,model.l21,model.l22,model.l23,model.l24,model.l25,model.l26,model.l27]
+        ]
+        # and define 3 lrs for the 3 groups
+        lrs = np.array([3e-5, 1e-4 , lr/5])
+        optimizer = torch.optim.Adam(get_group_params(param_groups, lrs), lr=lr)
+        #optimizer = torch.optim.Adam(model.parameters(), lr=lr)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", patience=5, factor=0.3, verbose=True)
     
-        for epoch in range(FBT_EPOCHS):
+    
+        for epoch in range(EPOCHS):
             print(f"Starting epoch {epoch} training phase")
             train(train_dataset, train_loader, model, optimizer)
             print(f"Starting epoch {epoch} validation phase")
             val_score = evaluate(valid_dataset, valid_loader, model)
             print(val_score)
             scheduler.step(val_score)
-
-    ## STAGE 2
-
-    # unfreeze all layers
-    unfreeze(model)
-    lr = 1e-4
-    # For differential learning rate let's divide the network into 3 groups
-    param_groups = [
-        [model.model.conv1, model.model.bn1, model.model.layer1],
-        [model.model.layer2, model.model.layer3, model.model.layer4],
-        [model.model.last_linear,model.l0,model.l1,model.l2,model.l3,model.l4,model.l5,model.l6,model.l7,model.l8,model.l9,model.l10,model.l11,model.l12,model.l13,model.l14,model.l15,model.l16,model.l17,model.l18,model.l19,model.l20,model.l21,model.l22,model.l23,model.l24,model.l25,model.l26,model.l27]
-    ]
-    # and define 3 lrs for the 3 groups
-    lrs = np.array([lr/3, lr , lr*3])
-    #lr_div = 8
-
-    optimizer = torch.optim.Adam(get_group_params(param_groups, lrs), lr=lr)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", patience=5, factor=0.3, verbose=True)
-
-
-    for epoch in range(EPOCHS):
-        print(f"Starting epoch {epoch} training phase")
-        train(train_dataset, train_loader, model, optimizer)
-        print(f"Starting epoch {epoch} validation phase")
-        val_score = evaluate(valid_dataset, valid_loader, model)
-        print(val_score)
-        scheduler.step(val_score)
-        torch.save(model.state_dict(), f"../models/{BASE_MODEL}_w_tfms_dlr_v5_epoch{EPOCHS}_fold{VALIDATION_FOLDS[0]}.bin")
+        
+        torch.save(model.state_dict(), f"../models/temp/{BASE_MODEL}_stage-mutli{i}_total-epochs-done{total_epochs}_fold{VALIDATION_FOLDS[0]}.bin")
+        
+        if i == (stage_multiplier - 1):
+            torch.save(model.state_dict(), f"../models/{BASE_MODEL}_w_tfms_stage-mutli{stage_multiplier}_fbtepochs{FBT_EPOCHS}_epoch{EPOCHS}_fold{VALIDATION_FOLDS[0]}.bin")
         
 if __name__ == "__main__":
     main()
