@@ -34,7 +34,17 @@ MODEL_STD = ast.literal_eval(os.environ.get("MODEL_STD"))
 TRAINING_FOLDS = ast.literal_eval(os.environ.get("TRAINING_FOLDS"))
 VALIDATION_FOLDS= ast.literal_eval(os.environ.get("VALIDATION_FOLDS"))
 BASE_MODEL = os.environ.get("BASE_MODEL")
-                 
+
+total = 0
+correct = 0
+
+train_loss = 0
+test_loss = 0
+best_acc = 0
+trn_losses = []
+trn_accs = []
+val_losses = []
+val_accs = []
 
 
 def main():    
@@ -239,37 +249,17 @@ def main():
     optimizer = torch.optim.SGD(model.parameters(), lr=0.08, momentum=0.95, weight_decay=1e-4)
     load_checkpoint(model, filename)
 
-    total = 0
-    correct = 0
-    
-    train_loss = 0
-    test_loss = 0
-    best_acc = 0
-    trn_losses = []
-    trn_accs = []
-    val_losses = []
-    val_accs = []
-
-
+        
     def train(epoch=0, use_cycle = False, model=model):
         model.train()
+        
         global best_acc
         global trn_accs, trn_losses
+
         is_improving = True
         counter = 0
         running_loss = 0.
         avg_beta = 0.98
-        
-        total = 0
-        correct = 0
-        
-        train_loss = 0
-        test_loss = 0
-        best_acc = 0
-        trn_losses = []
-        trn_accs = []
-        val_losses = []
-        val_accs = []
         
         for bi, d in enumerate(t):
         #for i, (input, target) in enumerate(train_loader):
@@ -377,23 +367,13 @@ def main():
             optimizer.step()
 
     preds =[]
-    
-    
+          
     def test(model=model):
         model.eval()
+        
         global val_accs, val_losses
+
         running_loss = 0.
-        
-        total = 0
-        correct = 0
-        
-        train_loss = 0
-        test_loss = 0
-        best_acc = 0
-        trn_losses = []
-        trn_accs = []
-        val_losses = []
-        val_accs = []
         
         with torch.no_grad():
             for bi, d in enumerate(t):
