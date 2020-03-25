@@ -67,7 +67,7 @@ class HumanProteinAtlasTrain:
                                                 p=0.9),# apply 90% of the times
                 albumentations.HorizontalFlip(p=0.5),
                 albumentations.RandomBrightness(p=0.2, limit=0.2),
-                albumentations.RandomContrast(p=0.1, limit=0.2),
+                albumentations.RandomContrast(p=0.2, limit=0.2),
                 albumentations.RandomRotate90(p=0.2),
                 # Normalize
                 albumentations.Normalize(mean, std, p=1.0)                
@@ -78,8 +78,8 @@ class HumanProteinAtlasTrain:
         return len(self.image_ids)
     
     def __getitem__(self, item):
-        #image = joblib.load(f"/home/ubuntu/datasets/human-protein-atlas/train_512by512/{self.image_ids[item]}.png")
         image = Image.open(f"/home/ubuntu/datasets/human-protein-atlas/train_512by512/{self.image_ids[item]}.png").convert("RGB")
+        #image = Image.open(f"/home/ubuntu/datasets/human-protein-atlas/train_1024by1024/{self.image_ids[item]}.png").convert("RGB")
         #Image.open(path).convert("RGB")
         #image = Image.fromarray(image)
         # Let's apply the transforms defined in init
