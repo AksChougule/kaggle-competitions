@@ -34,6 +34,7 @@ MODEL_STD = ast.literal_eval(os.environ.get("MODEL_STD"))
 TRAINING_FOLDS = ast.literal_eval(os.environ.get("TRAINING_FOLDS"))
 VALIDATION_FOLDS= ast.literal_eval(os.environ.get("VALIDATION_FOLDS"))
 BASE_MODEL = os.environ.get("BASE_MODEL")
+                 
 
 total = 0
 correct = 0
@@ -45,7 +46,6 @@ trn_losses = []
 trn_accs = []
 val_losses = []
 val_accs = []
-
 
 def main():    
     model = MODEL_DISPATCHER[BASE_MODEL](pretrained=True)
@@ -114,9 +114,9 @@ def main():
     
     # define optimizer and loss function
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.95, weight_decay=1e-4)
+    optimizer = torch.optim.SGD(model.parameters(), lr=LR, momentum=0.95, weight_decay=1e-4)
     clr = CLR(optimizer, len(train_loader))
-    
+    print(LR)
     def update_lr(optimizer, lr):
         for g in optimizer.param_groups:
             g['lr'] = lr
@@ -246,11 +246,12 @@ def main():
 # =============================================================================
     
     onecycle = OneCycle(int(len(train_dataset) * epoch /TRAIN_BATCH_SIZE), 0.8, prcnt=(epoch - 82) * 100/epoch, momentum_vals=(0.95, 0.8))
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.08, momentum=0.95, weight_decay=1e-4)
+    optimizer = torch.optim.SGD(model.parameters(), lr=LR, momentum=0.95, weight_decay=1e-4)
     load_checkpoint(model, filename)
 
+    print(LR)
         
-    def train(epoch=0, use_cycle = False, model=model):
+    def train(t, epoch=0, use_cycle = False, model=model):
         model.train()
         
         global best_acc
@@ -346,11 +347,13 @@ def main():
             res = tt-oo2 # 20 sized 1D tensor
             res_len = res.cpu().numpy().size
             acc =  1 - (res.nonzero().size(0)/res_len)
-                
+            
+            #pdb.set_trace()
+            
             running_loss = avg_beta * running_loss + (1-avg_beta) *loss.data
             smoothed_loss = running_loss / (1 - avg_beta**(bi+1))
             
-            trn_losses.append(smoothed_loss)
+            trn_losses.append(smoothed_loss.cpu().tolist())
                 
             # measure accuracy and record loss
             prec = acc
@@ -368,7 +371,7 @@ def main():
 
     preds =[]
           
-    def test(model=model):
+    def test(t, model=model):
         model.eval()
         
         global val_accs, val_losses
@@ -460,22 +463,28 @@ def main():
                 res_len = res.cpu().numpy().size
                 acc =  1 - (res.nonzero().size(0)/res_len)
                 
+                #pdb.set_trace()
+                
            
                 # measure accuracy and record loss
                 prec = acc
                 test_stats.append(loss.data, prec, time.time()-bt_start)
     
-                val_losses.append(smoothed_loss)
+                val_losses.append(smoothed_loss.cpu().tolist())
                 val_accs.append(prec)
     
     
     def fit(use_onecycle=False, model=model):
         print("Epoch\tTrn_loss\tVal_loss\tTrn_acc\t\tVal_acc")
         for j in range(epoch):
-            train(j, use_onecycle, model)
-            test(model)
-            print("{}\t{:06.8f}\t{:06.8f}\t{:06.8f}\t{:06.8f}"
-                  .format(j+1, trn_losses[-1], val_losses[-1], trn_accs[-1], val_accs[-1]))
+            t = tqdm.tqdm(train_loader, leave=False, total=len(train_loader))
+            train(t, j, use_onecycle, model)
+            t = tqdm.tqdm(train_loader, leave=False, total=len(train_loader))
+            test(t, model)
+            #pdb.set_trace()
+            print(j+1, trn_losses[-1], val_losses[-1], sum(trn_accs)/len(trn_accs), sum(val_accs)/len(val_accs))
+            #print("{}\t{:06.8f}\t{:06.8f}\t{:06.8f}\t{:06.8f}"
+            #      .format(j+1, trn_losses[-1], val_losses[-1], trn_accs[-1], val_accs[-1]))
 
     fit(True)
     
