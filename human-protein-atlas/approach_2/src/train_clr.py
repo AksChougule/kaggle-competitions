@@ -49,7 +49,8 @@ val_accs = []
 
 def main():    
     model = MODEL_DISPATCHER[BASE_MODEL](pretrained=True)
-
+    for param in model.parameters():
+        param.requires_grad = True
     model.to(DEVICE)
     
     train_dataset = HumanProteinAtlasTrain(
@@ -489,18 +490,18 @@ def main():
     fit(True)
     
     # for train
-    ep_losses = []
-    for i in range(0, len(train_stats.losses), len(train_loader)):
-        if i != 0 :
-            ep_losses.append(train_stats.losses[i])
+    #ep_losses = []
+    #for i in range(0, len(train_stats.losses), len(train_loader)):
+    #    if i != 0 :
+    #        ep_losses.append(train_stats.losses[i])
         
     # for val
-    ep_lossesv = []
-    for i in range(0, len(test_stats.losses), len(test_loader)):
-        if(i != 0):
-            ep_lossesv.append(test_stats.losses[i])
+    #ep_lossesv = []
+    #for i in range(0, len(test_stats.losses), len(test_loader)):
+    #    if(i != 0):
+    #        ep_lossesv.append(test_stats.losses[i])
     
-    torch.save(model.state_dict(), f"../models/{BASE_MODEL}_w_tfms_v10_epoch{epoch}_fold{VALIDATION_FOLDS[0]}.bin")
+    torch.save(model.state_dict(), f"../models/{BASE_MODEL}_w_tfms_v11_epoch{epoch}_fold{VALIDATION_FOLDS[0]}.bin")
         
 if __name__ == "__main__":
     main()
